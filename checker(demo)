@@ -1,0 +1,26 @@
+void setup(){
+    size(1000,800);
+    background(225);
+    draw_table();
+}
+
+void draw_table(){
+    int row = 8;
+    int col = 8;
+    int i = 0;
+    int size = height/8;
+    
+    while(i<col){
+        int j = 0;
+        while(j<row){
+            if((i+j)%2 == 0){
+                fill(247,215,158);
+            }else{
+                fill(144,116,104);
+            }
+            rect(i*size,j*size,size,size);
+            j++;
+        }
+        i++;
+    }
+}
