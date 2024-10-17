@@ -1,10 +1,21 @@
 String game = "main";
+int row = 8;
+int col = 8;
+int cellsize = 100;
 boolean player;
+int[][] board = new int[8][8]; 
 
 void setup(){
     size(1000,800);
     background(225);
-    draw_table();
+    
+    for(int i=0;i<8;i++){
+         for(int j=0;j<8;j++){
+         print(board[i][j]);
+         }
+    }
+    
+    draw_board();
     play_button();
     load_button();
 }
@@ -12,13 +23,14 @@ void setup(){
 void draw(){
     if(game == "main"){
         background(225);
-        draw_table();
+        draw_board();
         play_button();
         load_button();
     }
     else{
         background(225);
-        draw_table();
+        board_default();
+        draw_board();
         save_button();
         exit_button();
         turn(player);
@@ -36,15 +48,13 @@ void mousePressed(){
         if (mouseX>840 && mouseX<960 && mouseY>120 && mouseY <170){
             game = "main";
             random_first();
+            board_reset();
         }
     }
 }
 
-void draw_table(){
-    int row = 8;
-    int col = 8;
+void draw_board(){
     int i = 0;
-    int size = height/8;
     
     while(i<col){
         int j = 0;
@@ -54,7 +64,8 @@ void draw_table(){
             }else{
                 fill(144,116,104);
             }
-            rect(i*size,j*size,size,size);
+            rect(i*cellsize,j*cellsize,cellsize,cellsize);
+            draw_piece(i,j);
             j++;
         }
         i++;
@@ -104,7 +115,7 @@ void exit_button(){
     text("Exit",900,145);
 }
 
-void player1_text(){
+void black_text(){
     stroke(0);
     strokeWeight(1);
     textSize(28);
@@ -113,7 +124,7 @@ void player1_text(){
     text("Turn : White",900,750);    
 }
 
-void player2_text(){
+void white_text(){
     stroke(0);
     strokeWeight(1);
     textSize(28);
@@ -134,9 +145,42 @@ void random_first(){
 
 void turn(boolean player){
     if(player == true){
-        player1_text();
+        white_text();
     }
     else{
-        player2_text();
+        black_text();
     }
+}
+
+void board_default(){
+    int i = 0;
+    while(i<8){
+        if(i%2 == 0){
+            board[i][0] = 2;
+            board[i][7] = 1;
+        }
+        else{
+            board[i][1] = 2;
+            board[i][6] = 1;
+        }
+        i++;
+    }
+}
+
+void board_reset(){
+    for(int i=0;i<8;i++){
+         for(int j=0;j<8;j++){
+             board[i][j]= 0;
+         }
+    }
+}
+
+void draw_piece(int r,int c){
+    if (board[r][c] == 1) {
+    fill(255); 
+    ellipse(r * cellsize + cellsize / 2, c * cellsize + cellsize / 2, cellsize * 0.8, cellsize * 0.8);
+  } else if (board[r][c] == 2) {
+    fill(0); 
+    ellipse(r * cellsize + cellsize / 2, c * cellsize + cellsize / 2, cellsize * 0.8, cellsize * 0.8);
+  }
 }
