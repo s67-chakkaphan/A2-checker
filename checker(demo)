@@ -35,36 +35,94 @@ void draw(){
         draw_board();
         save_button();
         exit_button();
-        draw_piece();
+        draw_pieces();
         turn(player);
     }
 }
 
-void mousePressed(){
-    if(game == "main"){
-        if (mouseX>840 && mouseX<960 && mouseY>20 && mouseY <70){
-            game = "play";
-            random_first();
-            board_default();
-        }
-    }
+void mousePressed() {
     int r = mouseX / cellsize;
     int c = mouseY / cellsize;
-    
-    if(game == "play"){
-        if (mouseX>840 && mouseX<960 && mouseY>120 && mouseY <170){
+
+    if (game == "main") {
+        if (mouseX > 840 && mouseX < 960 && mouseY > 20 && mouseY < 70) {  
+            game = "play";
+            random_first();
+            board_default();  
+        }
+    }
+
+    if (game == "play") {
+        if (mouseX > 840 && mouseX < 960 && mouseY > 120 && mouseY < 170) {
             game = "main";
             random_first();
-            board_clear();
+            board_reset();
             selectedRow = -1;  
-            selectedCol = -1;
-            pieceSelected = false;
-        }else if(r<8 && c<8){
+            selectedCol = -1;  
+            pieceSelected = false;  
+        } else if (r < 8 && c < 8) {
             if (!pieceSelected && board[r][c] != 0 && validPiece(r, c)) {
-                    selectedRow = r;
-                    selectedCol = c;
-                    pieceSelected = true;
+                selectedRow = r;
+                selectedCol = c;
+                pieceSelected = true;
+                println("Selected piece at: (" + r + ", " + c + ")");
             } 
+            else if (pieceSelected) {
+                if (validMove(selectedRow, selectedCol, r, c)) {
+                    int piece = board[selectedRow][selectedCol];
+                    // Check move direction for normal pieces (1 and 2)
+                    if ((piece == 1 && c < selectedCol) || (piece == 2 && c > selectedCol)) { 
+                        int midRow = (selectedRow + r) / 2;
+                        int midCol = (selectedCol + c) / 2;
+                        if (abs(selectedRow - r) == 2 && abs(selectedCol - c) == 2 && board[midRow][midCol] != 0) {
+                            board[midRow][midCol] = 0; 
+                        }
+
+                        if (c == 0 && piece == 1) {
+                            board[r][c] = 3; 
+                        } else if (c == 7 && piece == 2) {
+                            board[r][c] = 4; 
+                        } else {
+                            board[r][c] = piece;
+                        }
+
+                    } 
+                    else if (piece == 3 || piece == 4) {
+                       board[r][c] = piece; 
+                      int rowDirection = (r > selectedRow) ? 1 : -1;
+                      int colDirection = (c > selectedCol) ? 1 : -1;
+                      int midRow = selectedRow + rowDirection;
+                      int midCol = selectedCol + colDirection;                  
+                      while (midRow != r && midCol != c) {
+                          if ((piece == 3 && (board[midRow][midCol] == 2 || board[midRow][midCol] == 4)) || 
+                              (piece == 4 && (board[midRow][midCol] == 1 || board[midRow][midCol] == 3))) {
+                              board[midRow][midCol] = 0;
+                              println("Captured piece at: (" + midRow + ", " + midCol + ")");
+                              break;
+                          }
+                          midRow += rowDirection;
+                          midCol += colDirection;
+                      }
+                 }
+                    board[selectedRow][selectedCol] = 0;
+                    pieceSelected = false;  
+                    selectedRow = -1;  
+                    selectedCol = -1;  
+                    player = !player;  
+                } else {
+                    pieceSelected = false;  
+                    selectedRow = -1;  
+                    selectedCol = -1;  
+                }
+            }
+        }
+    }
+}
+
+void draw_pieces(){
+   for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            draw_piece(i, j);
         }
     }
 }
@@ -86,6 +144,21 @@ void draw_board(){
                 rect(i * cellsize, j * cellsize, cellsize, cellsize);
             }
             j++;
+        }
+        i++;
+    }
+}
+
+void board_default(){
+    int i = 0;
+    while(i<8){
+        if(i%2 == 0){
+            board[i][1] = 2;
+            board[i][7] = 1;
+        }
+        else{
+            board[i][0] = 2;
+            board[i][6] = 1;
         }
         i++;
     }
@@ -171,7 +244,7 @@ void turn(boolean player){
     }
 }
 
-void board_default(){
+void board_reset(){
     int i = 0;
     while(i<8){
         if(i%2 == 0){
@@ -194,21 +267,21 @@ void board_clear(){
     }
 }
 
-void draw_piece(){
-    int r = 0;
-    while(r<8){
-        int c = 0;
-        while(c<8){
-              if (board[r][c] == 1) {
-              fill(255); 
-              ellipse(r * cellsize + cellsize / 2, c * cellsize + cellsize / 2, cellsize * 0.8, cellsize * 0.8);
-            } else if (board[r][c] == 2) {
-              fill(0); 
-              ellipse(r * cellsize + cellsize / 2, c * cellsize + cellsize / 2, cellsize * 0.8, cellsize * 0.8);
-            }  
-            c++;
-        }
-        r++;
+void draw_piece(int r,int c){
+    if (board[r][c] == 1) {
+        fill(255); 
+        ellipse(r * cellsize + cellsize / 2, c * cellsize + cellsize / 2, cellsize * 0.8, cellsize * 0.8);
+    } else if (board[r][c] == 2) {
+        fill(0); 
+        ellipse(r * cellsize + cellsize / 2, c * cellsize + cellsize / 2, cellsize * 0.8, cellsize * 0.8);
+    }
+    else if (board[r][c] == 3) {
+        fill(255); 
+        rect(r * cellsize + (cellsize - 70) / 2, c * cellsize + (cellsize - 70) / 2, 70, 70);
+    }
+    else if (board[r][c] == 4) {
+        fill(0); 
+        rect(r * cellsize + (cellsize - 70) / 2, c * cellsize + (cellsize - 70) / 2, 70, 70);
     }
 }
 
@@ -219,27 +292,52 @@ boolean validPiece(int r, int c) {
 }
 
 boolean validMove(int fromRow, int fromCol, int toRow, int toCol) {
-    if (board[toRow][toCol] == 0) {
-        if (board[fromRow][fromCol] == 1) {
-            if (toCol > fromCol) return false; 
-            if (toCol < fromCol && (toRow == fromRow - 1 || toRow == fromRow + 1)) return true;
+    if (board[toRow][toCol] == 0) {        
+        if (board[fromRow][fromCol] == 1) {            
+            if (toCol > fromCol) {
+                return false; 
+            }
+            if (toCol < fromCol && (toRow == fromRow - 1 || toRow == fromRow + 1)) {
+                return true;
+            }
         } 
         else if (board[fromRow][fromCol] == 2) {
-            if (toCol < fromCol) return false; 
-            if (toCol > fromCol && (toRow == fromRow - 1 || toRow == fromRow + 1)) return true;
-        }
-        
-        if (board[fromRow][fromCol] == 3 || board[fromRow][fromCol] == 4) { 
-            if (abs(fromRow - toRow) == abs(fromCol - toCol)) return true; 
+            if (toCol < fromCol) {
+                return false; 
+            }
+            if (toCol > fromCol && (toRow == fromRow - 1 || toRow == fromRow + 1)) {
+                return true; 
+            }
+        }        
+        if (board[fromRow][fromCol] == 3 || board[fromRow][fromCol] == 4) {
+            if (abs(fromRow - toRow) == abs(fromCol - toCol) && (toRow != fromRow && toCol != fromCol)) {
+                return true; 
+            }
         }
     }
-
     if (abs(fromRow - toRow) == 2 && abs(fromCol - toCol) == 2) {
         int midRow = (fromRow + toRow) / 2;
         int midCol = (fromCol + toCol) / 2;
 
-        if (board[fromRow][fromCol] == 1 && (board[midRow][midCol] == 2 || board[midRow][midCol] == 4)) return true;
-        if (board[fromRow][fromCol] == 2 && (board[midRow][midCol] == 1 || board[midRow][midCol] == 3)) return true;
-    }
+        if (board[fromRow][fromCol] == 1) {
+            if (board[midRow][midCol] == 2 || board[midRow][midCol] == 4) {
+                return true;
+            }
+        }    
+        else if (board[fromRow][fromCol] == 2) {
+            if (board[midRow][midCol] == 1 || board[midRow][midCol] == 3) {
+                return true; 
+            }
+        }
+        else if (board[fromRow][fromCol] == 3) {
+            if (board[midRow][midCol] == 2 || board[midRow][midCol] == 4) {
+                return true; 
+            }
+        } else if (board[fromRow][fromCol] == 4) {
+            if (board[midRow][midCol] == 1 || board[midRow][midCol] == 3) {
+                return true; 
+            }
+        }
+    }    
     return false;
 }
