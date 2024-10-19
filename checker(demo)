@@ -4,6 +4,9 @@ int col = 8;
 int cellsize = 100;
 boolean player;
 int[][] board = new int[8][8]; 
+boolean selected = false;
+int selectedRow = -1;
+int selectedCol = -1;
 
 void setup(){
     size(1000,800);
@@ -27,12 +30,12 @@ void draw(){
         play_button();
         load_button();
     }
-    else{
+    else if(game == "play"){
         background(225);
-        board_default();
         draw_board();
         save_button();
         exit_button();
+        draw_piece();
         turn(player);
     }
 }
@@ -42,13 +45,26 @@ void mousePressed(){
         if (mouseX>840 && mouseX<960 && mouseY>20 && mouseY <70){
             game = "play";
             random_first();
+            board_default();
         }
     }
+    int r = mouseX / cellsize;
+    int c = mouseY / cellsize;
+    
     if(game == "play"){
         if (mouseX>840 && mouseX<960 && mouseY>120 && mouseY <170){
             game = "main";
             random_first();
-            board_reset();
+            board_clear();
+            selectedRow = -1;  
+            selectedCol = -1;
+            selected = false;
+        }else if(r<8 && c<8){
+            if (!selected && board[r][c] != 0 && valid_piece(r, c)) {
+                    selectedRow = r;
+                    selectedCol = c;
+                    selected = true;
+            } 
         }
     }
 }
@@ -65,7 +81,10 @@ void draw_board(){
                 fill(144,116,104);
             }
             rect(i*cellsize,j*cellsize,cellsize,cellsize);
-            draw_piece(i,j);
+            if (i == selectedRow && j == selectedCol) {
+                fill(0, 255, 0, 150);  // สีแดงโปร่งใส
+                rect(i * cellsize, j * cellsize, cellsize, cellsize);
+            }
             j++;
         }
         i++;
@@ -157,17 +176,17 @@ void board_default(){
     while(i<8){
         if(i%2 == 0){
             board[i][0] = 2;
-            board[i][7] = 1;
+            board[i][6] = 1;
         }
         else{
             board[i][1] = 2;
-            board[i][6] = 1;
+            board[i][7] = 1;
         }
         i++;
     }
 }
 
-void board_reset(){
+void board_clear(){
     for(int i=0;i<8;i++){
          for(int j=0;j<8;j++){
              board[i][j]= 0;
@@ -175,12 +194,26 @@ void board_reset(){
     }
 }
 
-void draw_piece(int r,int c){
-    if (board[r][c] == 1) {
-    fill(255); 
-    ellipse(r * cellsize + cellsize / 2, c * cellsize + cellsize / 2, cellsize * 0.8, cellsize * 0.8);
-  } else if (board[r][c] == 2) {
-    fill(0); 
-    ellipse(r * cellsize + cellsize / 2, c * cellsize + cellsize / 2, cellsize * 0.8, cellsize * 0.8);
-  }
+void draw_piece(){
+    int r = 0;
+    while(r<8){
+        int c = 0;
+        while(c<8){
+              if (board[r][c] == 1) {
+              fill(255); 
+              ellipse(r * cellsize + cellsize / 2, c * cellsize + cellsize / 2, cellsize * 0.8, cellsize * 0.8);
+            } else if (board[r][c] == 2) {
+              fill(0); 
+              ellipse(r * cellsize + cellsize / 2, c * cellsize + cellsize / 2, cellsize * 0.8, cellsize * 0.8);
+            }  
+            c++;
+        }
+        r++;
+    }
+}
+
+boolean valid_piece(int r, int c) {
+    if (player && board[r][c] == 2) return true;  
+    if (!player && board[r][c] == 1) return true; 
+    return false;
 }
