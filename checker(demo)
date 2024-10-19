@@ -50,9 +50,19 @@ void mousePressed() {
             random_first();
             board_default();  
         }
+        if (mouseX > 840 && mouseX < 960 && mouseY > 120 && mouseY < 170) { 
+            loadGame();
+            game = "play";
+        }
     }
 
     if (game == "play") {
+        if ((r + c) % 2 == 0) {
+            return;
+        }
+        if (mouseX > 840 && mouseX < 960 && mouseY > 20 && mouseY < 70) {
+            saveGame();
+        }
         if (mouseX > 840 && mouseX < 960 && mouseY > 120 && mouseY < 170) {
             game = "main";
             random_first();
@@ -70,7 +80,6 @@ void mousePressed() {
             else if (pieceSelected) {
                 if (validMove(selectedRow, selectedCol, r, c)) {
                     int piece = board[selectedRow][selectedCol];
-                    // Check move direction for normal pieces (1 and 2)
                     if ((piece == 1 && c < selectedCol) || (piece == 2 && c > selectedCol)) { 
                         int midRow = (selectedRow + r) / 2;
                         int midCol = (selectedCol + c) / 2;
@@ -340,4 +349,52 @@ boolean validMove(int fromRow, int fromCol, int toRow, int toCol) {
         }
     }    
     return false;
+}
+void saveGame() {
+  selectOutput("Select a location to save:", "savetoFile");
+}
+
+void savetoFile(File selection) {
+  if (selection == null) {
+    println("No file was selected");
+    return;
+  }
+  
+  String[] lines = new String[9];
+  for (int i = 0; i < 8; i++) {
+    lines[i] = join(intArrayToStringArray(board[i]), ","); 
+  }
+  lines[8] = player ? "true" : "false";
+
+  saveStrings(selection.getAbsolutePath(), lines);
+  println("Game Saved to " + selection.getAbsolutePath());
+}
+
+void loadGame() {
+  selectInput("Select a file to load:", "loadFromFile");
+}
+
+void loadFromFile(File selection) {
+  if (selection == null) {
+    println("No file was selected");
+    return; 
+  }
+  
+  String[] lines = loadStrings(selection.getAbsolutePath());
+  for (int i = 0; i < 8; i++) {
+    String[] nums = split(lines[i], ",");
+    for (int j = 0; j < 8; j++) {
+      board[i][j] = int(nums[j]); 
+    }
+  }
+  
+  player = lines[8].equals("true"); 
+}
+
+String[] intArrayToStringArray(int[] arr) {
+  String[] strArr = new String[arr.length];
+  for (int i = 0; i < arr.length; i++) {
+    strArr[i] = String.valueOf(arr[i]);
+  }
+  return strArr;
 }
